@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-const bookCtrl = require('../controllers/bookControllers')
-const Book = require('../models/book');
+const auth = require('../middleware/auth') //ajouter auth aux routes qui ont besoin
+
+const bookCtrl = require('../controllers/book')
+
 
 router.get('/', bookCtrl.getAllBooks);
 
