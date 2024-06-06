@@ -1,3 +1,4 @@
+const book = require('../models/book');
 const Book = require('../models/book');
 
 const fs = require('fs');
@@ -29,7 +30,7 @@ exports.getBestBooks = (req, res, next) => {
     },
     { $limit : 3 }
  ] )
- .then(book => res.status(200).json(book))
+ .then((book) => res.status(200).json(book))
  .catch(error => res.status(400).json({ error }));
 
 }
@@ -91,12 +92,13 @@ exports.deleteBook = (req, res, next) => {
 
 exports.rateBook = (req, res, next) => {
   const bookRating = req.body
-  console.log(bookRating)
-  console.log(({ _id: req.params.id}))
   Book.findOne({ _id: req.params.id })
     .then(() => {
-      Book.updateOne()  ///pause, à finir
-        .then(() => res.status(200).json({message: "note ajoutée"}))
+      Book.updateOne(
+        { _id: req.params.id}, 
+        { $push: { ratings: { ...bookRating }}}) 
+      /// ajouter calcul de moyenne 
+        .then((book) => res.status(200).json({book}))
         .catch(error => res.status(401).json({ error }))
       })
 
