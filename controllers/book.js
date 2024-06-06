@@ -15,7 +15,23 @@ exports.getOneBook = (req, res, next) => {
 }
 
 exports.getBestBooks = (req, res, next) => {
-  
+  Book.aggregate( [
+    {
+       $setWindowFields: {
+          partitionBy: "$averageRating",
+          sortBy: { averageRating: -1 },
+          output: {
+             rankQuantityForAverageRating: {
+                $rank: {}
+             }
+          }
+       }
+    },
+    { $limit : 3 }
+ ] )
+ .then(book => res.status(200).json(book))
+ .catch(error => res.status(400).json({ error }));
+
 }
 
 exports.addBook = (req, res, next) => {
@@ -73,9 +89,17 @@ exports.deleteBook = (req, res, next) => {
       });
 };
 
-/*
 exports.rateBook = (req, res, next) => {
-  Book.addOne({ _id: req.params.id }, {})
-    .then(() => res.status(200).json({message: "Livre noté !"}))
-    .catch(error => res.status(400).json({error}))
-} */
+  const bookRating = req.body
+  console.log(bookRating)
+  console.log(({ _id: req.params.id}))
+  Book.findOne({ _id: req.params.id })
+    .then(() => {
+      Book.updateOne()  ///pause, à finir
+        .then(() => res.status(200).json({message: "note ajoutée"}))
+        .catch(error => res.status(401).json({ error }))
+      })
+
+    
+      .catch(err => res.status(500).json({ err }))
+} 
