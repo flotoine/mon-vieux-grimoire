@@ -61,6 +61,16 @@ exports.editBook = (req, res, next) => {
           if (book.userId != req.auth.userId) {
               res.status(401).json({ message : 'Not authorized'});
           } else {*/
+              /*if (JSON.stringify.bookObject.includes('imageUrl')) {
+                console.log("oui")
+              } else {console.log("non")}*/
+              if (JSON.stringify(bookObject).includes('imageUrl')) {
+                const filename = book.imageUrl.split('/images/')[1];
+                fs.unlink(`images/${filename}`,(err) => {
+                  if (err) throw err
+                  else (console.log('Fichier image supprimé'))
+                });
+              } else {/*aucune intervention fichier image*/}
               Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
               .then(() => res.status(200).json({message : 'Livre modifié!'}))
               .catch(error => res.status(401).json({ error }));
@@ -89,6 +99,7 @@ exports.deleteBook = (req, res, next) => {
           res.status(500).json({ error });
       });
 };
+
 
 exports.rateBook = (req, res, next) => {
   const bookRating = req.body
