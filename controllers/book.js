@@ -1,7 +1,6 @@
 const { query } = require('express');
-const mongoose = require('mongoose');
+
 const Book = require('../models/book');
-const ObjectId = mongoose.Types.ObjectId;
 
 
 const fs = require('fs');
@@ -80,8 +79,8 @@ exports.editBook = (req, res, next) => {
                 });
               } else {/*aucune intervention fichier image*/}
               Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
-              .then(() => res.status(200).json({message : 'Livre modifié!'}))
-              .catch(error => res.status(401).json({ error }));
+              .then(() => res.status(204).json({message : 'Livre modifié!'}))
+              .catch(error => res.status(400).json({ error }));
           }
       })
       .catch((error) => {
@@ -98,8 +97,8 @@ exports.deleteBook = (req, res, next) => {
               const filename = book.imageUrl.split('/images/')[1];
               fs.unlink(`images/${filename}`, () => {
                   Book.deleteOne({_id: req.params.id})
-                      .then(() => { res.status(200).json({message: 'Livre supprimé !'})})
-                      .catch(error => res.status(401).json({ error }));
+                      .then(() => { res.status(204).json({message: 'Livre supprimé !'})})
+                      .catch(error => res.status(400).json({ error }));
               });
           }
       })
@@ -111,44 +110,19 @@ exports.deleteBook = (req, res, next) => {
 
 exports.rateBook = (req, res, next) => {
   const bookRating = req.body
-  console.log(req.body.id)
-  console.log(req.params.id)  
-/*
-
-  Book.aggregate( [
-    { $match: { _id: new mongoose.Types.ObjectId(req.params.id)}},
-    { $set: { averageRating : { $avg: "$ratings.grade"} } }
- ] )
- .then((book) => res.status(200).json(book))
- .catch(error => res.status(400).json({ error }));
-
-
-  */
-
-  
-  
-   Book.findOneAndUpdate(
-    //{ _id: req.params.id },
-     /*$push: { ratings: { 
-      userId : bookRating.userId,
-      grade : bookRating.rating
-      }},*/
-
-      
+   Book.findOneAndUpdate(  
        
       { _id: req.params.id },
         { 
           $push: { ratings: { 
             userId : bookRating.userId,
             grade : bookRating.rating
-            }}/*,
-          $set: { averageRating : { $avg: "$ratings.grade"}}*/
+            }}
         },
         { new: true }
 
     )
   
-
   .then(() => Book.findOneAndUpdate(
         { _id: req.params.id },
         [{ 
@@ -156,13 +130,9 @@ exports.rateBook = (req, res, next) => {
         }],
         { new: true }
   )
-    .then(book => res.status(200).json(book))
-    .catch(err => res.status(401).json({err}))
+    .then(book => res.status(204).json(book))
+    .catch(err => res.status(400).json({err}))
 )
   .catch(err => res.status(500).json({err}))
-
-  
-
-
 
 }
