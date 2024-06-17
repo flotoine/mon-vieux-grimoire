@@ -1,6 +1,8 @@
 const { query } = require('express');
-const book = require('../models/book');
+const mongoose = require('mongoose');
 const Book = require('../models/book');
+const ObjectId = mongoose.Types.ObjectId;
+
 
 const fs = require('fs');
 
@@ -109,16 +111,58 @@ exports.deleteBook = (req, res, next) => {
 
 exports.rateBook = (req, res, next) => {
   const bookRating = req.body
-  Book.findOneAndUpdate(
-    { _id: req.params.id },
-    { $push: { ratings: { 
+  console.log(req.body.id)
+  console.log(req.params.id)  
+/*
+
+  Book.aggregate( [
+    { $match: { _id: new mongoose.Types.ObjectId(req.params.id)}},
+    { $set: { averageRating : { $avg: "$ratings.grade"} } }
+ ] )
+ .then((book) => res.status(200).json(book))
+ .catch(error => res.status(400).json({ error }));
+
+
+  */
+
+  
+  
+   Book.findOneAndUpdate(
+    //{ _id: req.params.id },
+     /*$push: { ratings: { 
       userId : bookRating.userId,
       grade : bookRating.rating
-      }},
-      $set: {averageRating: 4}
-    },
-    {new: true}
+      }},*/
+
+      
+       
+      { _id: req.params.id },
+        { 
+          $push: { ratings: { 
+            userId : bookRating.userId,
+            grade : bookRating.rating
+            }}/*,
+          $set: { averageRating : { $avg: "$ratings.grade"}}*/
+        },
+        { new: true }
+
+    )
+  
+
+  .then(() => Book.findOneAndUpdate(
+        { _id: req.params.id },
+        [{ 
+          $set: { averageRating : { $avg: "$ratings.grade"}}
+        }],
+        { new: true }
   )
-  .then((book) => res.status(200).json(book))
-  .catch(err => err.status(401).json({err}))
-} 
+    .then(book => res.status(200).json(book))
+    .catch(err => res.status(401).json({err}))
+)
+  .catch(err => res.status(500).json({err}))
+
+  
+
+
+
+}
