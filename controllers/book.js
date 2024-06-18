@@ -69,7 +69,7 @@ exports.editBook = (req, res, next) => {
   Book.findOne({_id: req.params.id})
       .then((book) => {
           if (book.userId != req.auth.userId) {
-              res.status(401).json({ message : 'Not authorized'});
+              res.status(403).json({ message : 'Not authorized'});
           } else {
               if (JSON.stringify(bookObject).includes('imageUrl')) {
                 const filename = book.imageUrl.split('/images/')[1];
@@ -110,9 +110,9 @@ exports.deleteBook = (req, res, next) => {
 
 exports.rateBook = (req, res, next) => {
   const bookRating = req.body
+  
    Book.findOneAndUpdate(  
-       
-      { _id: req.params.id },
+      { _id: req.params.id, ratings: { $nin: new RegExp('^' +bookRating.userId + '$', 'i') }},
         { 
           $push: { ratings: { 
             userId : bookRating.userId,
@@ -126,11 +126,11 @@ exports.rateBook = (req, res, next) => {
   .then(() => Book.findOneAndUpdate(
         { _id: req.params.id },
         [{ 
-          $set: { averageRating : { $avg: "$ratings.grade"}}
+          $set: { averageRating : {$trunc : [{ $avg: "$ratings.grade"}, 1]}}
         }],
         { new: true }
   )
-    .then(book => res.status(204).json(book))
+    .then((book) => res.status(200).json(book))
     .catch(err => res.status(400).json({err}))
 )
   .catch(err => res.status(500).json({err}))
