@@ -1,9 +1,7 @@
 const { query } = require('express');
-
 const Book = require('../models/book');
-
-
 const fs = require('fs');
+
 
 exports.getAllBooks = (req, res, next) => {
     Book.find()
@@ -44,13 +42,14 @@ exports.addBook = (req, res, next) => {
       ...bookObject,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     })
+
     if (book.userId != req.auth.userId) {
       const filename = book.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`,(err) => {
                   if (err) throw err
                   else (console.log('Fichier image supprimé'))
                 })
-      res.status(401).json({ message : 'Not authorized'})
+      res.status(401).json({ message : 'Not authorized'}) // ???
     } else {
     book.save()
       .then(() => res.status(201).json({message: "Livre enregistré !"}))
