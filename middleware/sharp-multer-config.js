@@ -26,7 +26,5 @@ const storage = SharpMulter({
   filename: newFilenameFunction, 
 });
 module.exports = multer({ storage }).single("image"), async (req, res) => {
-  console.log(req.file);
-
   return res.json("File Uploaded Successfully!");
 };

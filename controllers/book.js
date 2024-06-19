@@ -42,7 +42,7 @@ exports.addBook = (req, res, next) => {
       ...bookObject,
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     })
-
+/// Supprime l'image dans le dossier si userIds livre ajouté et connexion ne correspondent pas
     if (book.userId != req.auth.userId) {
       const filename = book.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`,(err) => {
@@ -70,7 +70,7 @@ exports.editBook = (req, res, next) => {
           if (book.userId != req.auth.userId) {
               res.status(403).json({ message : 'Not authorized'});
           } else {
-              if (JSON.stringify(bookObject).includes('imageUrl')) {
+              if (JSON.stringify(bookObject).includes('imageUrl')) {//si image présente, boucle de suppression du fichier
                 const filename = book.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`,(err) => {
                   if (err) throw err
@@ -112,6 +112,7 @@ exports.rateBook = (req, res, next) => {
   
    Book.findOneAndUpdate(  
       { _id: req.params.id, ratings: { $nin: new RegExp('^' +bookRating.userId + '$', 'i') }},
+      //recherche livre par id_ et vérifie qu'il ne contient déjà pas la note de l'utilisateur connecté
         { 
           $push: { ratings: { 
             userId : bookRating.userId,
@@ -125,7 +126,7 @@ exports.rateBook = (req, res, next) => {
   .then(() => Book.findOneAndUpdate(
         { _id: req.params.id },
         [{ 
-          $set: { averageRating : {$trunc : [{ $avg: "$ratings.grade"}, 1]}}
+          $set: { averageRating : {$trunc : [{ $avg: "$ratings.grade"}, 1]}}//tronque à 1 décimale
         }],
         { new: true }
   )
